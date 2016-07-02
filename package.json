@@ -11,6 +11,7 @@
   "scripts": {
     "postinstall": "curl -s https://raw.githubusercontent.com/hackreactor-labs/pomander/master/bin/install | bash",
     "start": "nodemon ./server/app.js",
+    "start:sql": "nodemon ./server-pure-sql/app.js",
     "start:es6": "babel-nodemon ./server/app.js",
     "test": "mocha server/spec/server-spec.js; RES=$?; kill %1; exit $RES",
     "test:es6": "mocha --compilers js:babel-register server/spec/server-spec.js; RES=$?; kill %1; exit $RES",

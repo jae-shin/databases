@@ -1,23 +1,11 @@
-var mysql = require('mysql');
+var Sequelize = require('sequelize');
+// var Promise = require('bluebird');
 
 // Create a database connection and export it from this file.
 // You will need to connect with the user "root", no password,
 // and to the database "chat".
 
-var db = mysql.createConnection({
-  user: 'root',
-  password: 'jae',
-  database: 'chat'
-});
-
-db.connect(function(err) {
-  if (err) {
-    console.error('error connecting: ' + err.stack);
-    return;
-  }
- 
-  console.log('database connected as id ' + db.threadId);
-});
+var db = new Sequelize('chatter', 'root', 'jae');
 
 module.exports = db;
 
