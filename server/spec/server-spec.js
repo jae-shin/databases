@@ -90,4 +90,22 @@ describe('Persistent Node Chat Server', function() {
       });
     });
   });
+
+  it('Should output all users from the DB', function(done) {
+    var tablename = 'users';
+    var queryString = 'INSERT INTO users SET ?';
+    var queryArgs = {
+      name: 'Max'
+    };
+
+    dbConnection.query(queryString, queryArgs, function(err) {
+      if (err) { throw err; }
+
+      request('http://127.0.0.1:3000/classes/users', function(error, response, body) {
+        var messageLog = JSON.parse(body);
+        expect(messageLog[messageLog.length - 1].name).to.equal('Max');
+        done();
+      });
+    });
+  });
 });

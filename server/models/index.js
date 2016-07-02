@@ -36,7 +36,15 @@ module.exports = {
 
   users: {
     // Ditto as above.
-    get: function () {},
+    get: function (callback) {
+      db.query('SELECT * FROM users', function(err, results) {
+        if (err) {
+          throw err;
+        } else {
+          callback(JSON.stringify(results));
+        }
+      });
+    },
     post: function (username, callback) {
       db.query('SELECT * FROM users WHERE name = ?', [username], function(err, results) {
         if (err) {
