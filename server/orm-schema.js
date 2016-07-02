@@ -19,12 +19,16 @@ var Users = db.define('Users', {
 
 Users.sync()
   .then(function(err) {
-    return Users.bulkCreate([
-      {name: 'jaebear'}, 
-      {name: 'greenday'}, 
-      {name: 'youthlagoon'}, 
-      {name: 'thestrokes'}
-    ]);
+    return Users.findOrCreate({where: {name: 'jaebear'}});
+  })
+  .spread(function(user, created) {
+    return Users.findOrCreate({where: {name: 'greenday'}});
+  })
+  .spread(function(user, created) {
+    return Users.findOrCreate({where: {name: 'youthlagoon'}});
+  })
+  .spread(function(user, created) {
+    return Users.findOrCreate({where: {name: 'thestrokes'}});
   });
 
 var Messages = db.define('Messages', {
@@ -37,21 +41,33 @@ Messages.belongsTo(Users, {as: 'user'});
 
 Messages.sync()
   .then(function(err) {
-    Users.findOne({ where: { name: 'jaebear' } })
-      .then(function(user) {
-        Messages.create({userId: user.id, text: 'yo yo yo', roomname: '944 Market St'});
-      });
-    Users.findOne({ where: { name: 'greenday' } })
-      .then(function(user) {
-        Messages.create({userId: user.id, text: 'holiday', roomname: 'on stage'});
-      });
-    Users.findOne({ where: { name: 'youthlagoon' } })
-      .then(function(user) {
-        Messages.create({userId: user.id, text: '17', roomname: 'the lagoon'});
-      });
-    Users.findOne({ where: { name: 'thestrokes' } })
-      .then(function(user) {
-        Messages.create({userId: user.id, text: 'is this it?', roomname: 'the room on fire'});
-      });
+    return Users.findOne({ where: { name: 'jaebear' } });
+  })
+  .then(function(user) {
+    return Messages.findOrCreate({where: {userId: user.id, text: 'yo yo yo', roomname: '944 Market St'}});
+  })
+  .spread(function() {
+    return Users.findOne({ where: { name: 'greenday' } });
+  })
+  .then(function(user) {
+    return Messages.findOrCreate({where: {userId: user.id, text: 'holiday', roomname: 'on stage'}});
+  })
+  .spread(function() {
+    return Users.findOne({ where: { name: 'youthlagoon' } });
+  })
+  .then(function(user) {
+    return Messages.findOrCreate({where: {userId: user.id, text: '17', roomname: 'the lagoon'}});
+  })
+  .spread(function() {
+    return Users.findOne({ where: { name: 'thestrokes' } });
+  })
+  .then(function(user) {
+    return Messages.findOrCreate({where: {userId: user.id, text: 'is this it?', roomname: 'the room on fire'}});
+  })
+  .spread(function() {
+    console.log('finised initializing!');
   });
+
+module.exports.users = Users;
+module.exports.messages = Messages;
 

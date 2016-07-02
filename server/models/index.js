@@ -1,4 +1,5 @@
 var db = require('../db');
+var orm = require('../orm-schema');
 
 module.exports = {
   messages: {
@@ -28,43 +29,19 @@ module.exports = {
     }, // a function which produces all the messages
     post: function (message, callback) {
       var username = message.username;
-      db.query('SELECT id FROM users WHERE name = ?', [username], function(err, results) {
-        if (err) { 
-          throw err; 
-        } else {
-          if (results.length === 0) {
-            db.query('INSERT INTO users SET ?', {name: username}, function(err, insertResults) {
-              if (err) {
-                throw err;
-              }
-              var queryArgs = {
-                userId: insertResults.insertId,
-                roomname: message.roomname,
-                text: message.message
-              };
-              db.query('INSERT INTO messages SET ?', queryArgs, function(err, results) {
-                if (err) {
-                  throw err;
-                }
-                callback();
-              });
-            });
-          } else {
-            var queryArgs = {
-              userId: results[0].id,
-              roomname: message.roomname,
-              text: message.message
-            };
-            db.query('INSERT INTO messages SET ?', queryArgs, function(err, results) {
-              if (err) {
-                throw err;
-              }
-              callback();
-            });
-          }
-        }
-        callback();
-      });
+      orm.users.findOrCreate({where: {name: username}})
+        .spread(function(user, created) {
+          console.log('user for message post is: ', user);
+          console.log('message created: ', created);
+          return orm.messages.create({
+            userId: user.id,
+            roomname: message.roomname,
+            text: message.message
+          });
+        })
+        .then(function() {
+          callback();
+        });
     } // a function which can be used to insert a message into the database
   },
 
@@ -80,21 +57,12 @@ module.exports = {
       });
     },
     post: function (username, callback) {
-      db.query('SELECT * FROM users WHERE name = ?', [username], function(err, results) {
-        if (err) {
-          throw err;
-        }
-        if (results.length === 0) {
-          db.query('INSERT INTO users SET ?', {name: username}, function(err, result) {
-            if (err) {
-              throw err;
-            }
-            callback();
-          });
-        } else {
+      orm.users.findOrCreate({where: {name: username}})
+        .spread(function(user, created) {
+          console.log(user.get());
+          console.log('created');
           callback();
-        }
-      });
+        });
     }
   }
 };
