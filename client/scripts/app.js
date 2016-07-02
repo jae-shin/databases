@@ -1,14 +1,16 @@
 document.addEventListener('DOMContentLoaded', function() {
 
   const defaultRoomname = 'all';
-  const startTimeForCreatedAt = '2001-01-00T00:00:00.000Z';
+  // const startTimeForCreatedAt = '2001-01-00T00:00:00.000Z';
+  const startId = 0;
 
   window.app = {
-    server: 'https://api.parse.com/1/classes/messages',
+    server: 'http://127.0.0.1:3000/classes/messages',
     username: window.location.search.slice(10).trim(),
     roomnames: {defaultRoomname: true},
     friends: {},
-    mostRecentCreatedAt: startTimeForCreatedAt,
+    // mostRecentCreatedAt: startTimeForCreatedAt,
+    mostRecentAddedMessageId: startId,
 
     init: function() {
       $('#chats').on('click', '.username', app.addFriend);
@@ -42,13 +44,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // option is true when invoking fetch right after a room change
     fetch: function(option) { 
-      if (option) {
-        app.mostRecentCreatedAt = startTimeForCreatedAt;
-      }
+      // if (option) {
+      //   app.mostRecentCreatedAt = startTimeForCreatedAt;
+      // }
 
       let queryObject = {
-        order: '-createdAt',
-        where: {createdAt: {$gt: app.mostRecentCreatedAt}}
+        // order: '-createdAt',
+        // where: {createdAt: {$gt: app.mostRecentCreatedAt}}
       };
 
       roomname = $('#roomSelect option:selected').text();
@@ -62,19 +64,29 @@ document.addEventListener('DOMContentLoaded', function() {
         data: queryObject,
         contentType: 'application/json',
         success: function (data) {
-          let messages = data.results;
+          // data no longer has a results property, 
+          // data itself is the array of message objects
+          let messages = JSON.parse(data);
           if (messages.length === 0) {
             return;
           }
           
-          app.mostRecentCreatedAt = messages[0].createdAt;
+          // app.mostRecentCreatedAt = messages[0].createdAt;
+          
+          var latestAddedMessageIndex = messages.length - 1;
+          while (latestAddedMessageIndex > -1 
+            && messages[latestAddedMessageIndex].id > app.mostRecentAddedMessageId) {
+            latestAddedMessageIndex--;
+          }
+
+          app.mostRecentAddedMessageId = messages[messages.length - 1].id;
+          
+          for (var j = latestAddedMessageIndex + 1; j < messages.length; j++) {
+            app.addMessage(messages[j]);
+          }
 
           if (option) {
             app.clearMessages();
-          }
-
-          for (var i = messages.length - 1; i >= 0; i--) {
-            app.addMessage(messages[i]);
           }
 
           messages.forEach(message => app.addRoom(message.roomname));
@@ -130,7 +142,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       let message = {
         username: app.username,
-        text: $('#message').val(),
+        message: $('#message').val(),
         roomname: roomname
       };
       $('#message').val('');
