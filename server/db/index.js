@@ -1,23 +1,75 @@
-var mysql = require('mysql');
+var Sequelize = require('sequelize');
 
-// Create a database connection and export it from this file.
-// You will need to connect with the user "root", no password,
-// and to the database "chat".
+var db = new Sequelize('chatter', 'root', 'jae');
 
-var db = mysql.createConnection({
-  user: 'root',
-  password: 'jae',
-  database: 'chat'
+db
+  .authenticate()
+  .then(function(err) {
+    console.log('Connection has been established successfully.');
+  })
+  .catch(function (err) {
+    console.log('Unable to connect to the database:', err);
+  });
+
+/* first define the data structure by giving property names and datatypes
+ * See http://sequelizejs.com for other datatypes you can use besides STRING. */
+var Users = db.define('Users', {
+  name: Sequelize.STRING,
+  createdAt: { type: Sequelize.DATE, defaultValue: Sequelize.NOW },
+  updatedAt: { type: Sequelize.DATE, defaultValue: Sequelize.NOW }
 });
 
-db.connect(function(err) {
-  if (err) {
-    console.error('error connecting: ' + err.stack);
-    return;
-  }
- 
-  console.log('database connected as id ' + db.threadId);
+var Messages = db.define('Messages', {
+  text: Sequelize.STRING,
+  roomname: Sequelize.STRING,
+  createdAt: { type: Sequelize.DATE, defaultValue: Sequelize.NOW },
+  updatedAt: { type: Sequelize.DATE, defaultValue: Sequelize.NOW }
 });
 
-module.exports = db;
+Users.sync()
+  .then(function(err) {
+    return Users.findOrCreate({where: {name: 'jaebear'}});
+  })
+  .spread(function(user, created) {
+    return Users.findOrCreate({where: {name: 'greenday'}});
+  })
+  .spread(function(user, created) {
+    return Users.findOrCreate({where: {name: 'youthlagoon'}});
+  })
+  .spread(function(user, created) {
+    return Users.findOrCreate({where: {name: 'thestrokes'}});
+  })
+  .spread(function(user, created) {
+    Messages.belongsTo(Users, {foreignKey: 'userId'});
+    return Messages.sync();
+  })
+  .then(function(err) {
+    return Users.findOne({ where: { name: 'jaebear' } });
+  })
+  .then(function(user) {
+    return Messages.findOrCreate({where: {userId: user.id, text: 'yo yo yo', roomname: '944 Market St'}});
+  })
+  .spread(function() {
+    return Users.findOne({ where: { name: 'greenday' } });
+  })
+  .then(function(user) {
+    return Messages.findOrCreate({where: {userId: user.id, text: 'holiday', roomname: 'on stage'}});
+  })
+  .spread(function() {
+    return Users.findOne({ where: { name: 'youthlagoon' } });
+  })
+  .then(function(user) {
+    return Messages.findOrCreate({where: {userId: user.id, text: '17', roomname: 'the lagoon'}});
+  })
+  .spread(function() {
+    return Users.findOne({ where: { name: 'thestrokes' } });
+  })
+  .then(function(user) {
+    return Messages.findOrCreate({where: {userId: user.id, text: 'is this it?', roomname: 'the room on fire'}});
+  })
+  .spread(function() {
+    console.log('finised initializing!');
+  });
 
+module.exports.users = Users;
+module.exports.messages = Messages;

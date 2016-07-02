@@ -1,39 +1,25 @@
 var db = require('../db');
-var orm = require('../orm-schema');
 
 module.exports = {
   messages: {
     get: function (callback) {
-      db.query('SELECT * FROM messages', function(err, results) {
-        if (err) {
-          throw err;
-        } else {
-          var asyncLoop = function(i) {
-            if (i < results.length) {
-              db.query('SELECT name FROM users WHERE id = ?', [results[i].userId], function(err, userRows) {
-                if (err) {
-                  throw err;
-                } 
-                if (userRows.length > 0) {
-                  results[i].username = userRows[0].name;
-                }
-                asyncLoop(i + 1);
-              });
-            } else {
-              callback(JSON.stringify(results));
-            }
-          };
-          asyncLoop(0);
-        }
-      });
+      db.messages.findAll({
+        include: [db.users], 
+        where: {userId: db.users.id}
+      })
+        .catch(function(err) {
+          console.log(err);
+        })
+        .then(function(results) {
+          console.log('stringified message results: ', JSON.stringify(results));
+          callback(JSON.stringify(results));
+        });
     }, // a function which produces all the messages
     post: function (message, callback) {
       var username = message.username;
-      orm.users.findOrCreate({where: {name: username}})
+      db.users.findOrCreate({where: {name: username}})
         .spread(function(user, created) {
-          console.log('user for message post is: ', user);
-          console.log('message created: ', created);
-          return orm.messages.create({
+          return db.messages.create({
             userId: user.id,
             roomname: message.roomname,
             text: message.message
@@ -48,19 +34,14 @@ module.exports = {
   users: {
     // Ditto as above.
     get: function (callback) {
-      db.query('SELECT * FROM users', function(err, results) {
-        if (err) {
-          throw err;
-        } else {
-          callback(JSON.stringify(results));
-        }
-      });
+      db.users.findAll()
+        .then(function(users) {
+          callback(JSON.stringify(users));
+        });
     },
     post: function (username, callback) {
-      orm.users.findOrCreate({where: {name: username}})
+      db.users.findOrCreate({where: {name: username}})
         .spread(function(user, created) {
-          console.log(user.get());
-          console.log('created');
           callback();
         });
     }
