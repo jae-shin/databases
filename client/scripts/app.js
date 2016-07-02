@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
     init: function() {
       $('#chats').on('click', '.username', app.addFriend);
       $('#send').on('submit', app.handleSubmit);
-      $('#roomSelect').on('change', app.handleRoomChange);
+      // $('#roomSelect').on('change', app.handleRoomChange);
 
       app.fetch();
       setInterval(app.fetch, 5000);
@@ -28,12 +28,13 @@ document.addEventListener('DOMContentLoaded', function() {
         data: JSON.stringify(message),
         contentType: 'application/json',
         success: function (data) {
-          if (message.roomname !== $('#roomSelect').val()) {
-            app.addRoom(message.roomname);
-            $('#roomSelect').val(message.roomname).trigger('change');
-          } else {
-            app.fetch();
-          }
+          // if (message.roomname !== $('#roomSelect').val()) {
+          //   app.addRoom(message.roomname);
+          //   $('#roomSelect').val(message.roomname).trigger('change');
+          // } else {
+          //   app.fetch();
+          // }
+          app.fetch();
           console.log('chatterbox: Message sent');
         },
         error: function (data) {
@@ -53,10 +54,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // where: {createdAt: {$gt: app.mostRecentCreatedAt}}
       };
 
-      roomname = $('#roomSelect option:selected').text();
-      if (roomname !== defaultRoomname) {
-        queryObject.where.roomname = roomname;
-      }
+      // roomname = $('#roomSelect option:selected').text();
+      // if (roomname !== defaultRoomname) {
+      //   queryObject.where.roomname = roomname;
+      // }
 
       $.ajax({
         url: app.server,
