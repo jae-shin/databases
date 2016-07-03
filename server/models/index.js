@@ -5,7 +5,6 @@ module.exports = {
     get: function (callback) {
       db.messages.findAll({
         include: [db.users], 
-        where: {userId: db.users.id}
       })
         .catch(function(err) {
           console.log(err);
